@@ -18,7 +18,9 @@ function AdminLogin() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/admin/login", {
+      const response = await fetch(
+  "https://shree-hanuman-tours-and-travels.onrender.com/api/admin/login",
+  {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
