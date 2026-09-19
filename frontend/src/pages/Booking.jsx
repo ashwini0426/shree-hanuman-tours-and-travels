@@ -129,6 +129,14 @@ function Booking() {
     };
 
     try {
+      // ================= CONVERT DD/MM/YYYY TO YYYY-MM-DD =================
+
+      const [day, month, year] =
+        bookingData.travelDate.split("/");
+
+      const databaseTravelDate =
+        `${year}-${month}-${day}`;
+
       // ================= SAVE TO SUPABASE =================
 
       const { error: supabaseError } = await supabase
@@ -152,7 +160,7 @@ function Booking() {
               bookingData.tripType,
 
             travel_date:
-              bookingData.travelDate,
+              databaseTravelDate,
 
             pickup_location:
               bookingData.pickupLocation,
@@ -571,6 +579,8 @@ Please review and confirm this booking request.`;
 
               </div>
 
+              {/* ================= UPDATED TRAVEL DATE ================= */}
+
               <div className="form-group">
 
                 <label>
@@ -578,14 +588,102 @@ Please review and confirm this booking request.`;
                 </label>
 
                 <input
-                  type="date"
+                  type="text"
                   name="travelDate"
-                  min={
-                    new Date()
-                      .toISOString()
-                      .split("T")[0]
-                  }
+                  placeholder="DD/MM/YYYY"
+                  maxLength="10"
+                  inputMode="numeric"
                   required
+
+                  onChange={(e) => {
+                    let value =
+                      e.target.value.replace(/\D/g, "");
+
+                    if (value.length > 2) {
+                      value =
+                        value.slice(0, 2) +
+                        "/" +
+                        value.slice(2);
+                    }
+
+                    if (value.length > 5) {
+                      value =
+                        value.slice(0, 5) +
+                        "/" +
+                        value.slice(5, 9);
+                    }
+
+                    e.target.value = value;
+                  }}
+
+                  onBlur={(e) => {
+                    const value =
+                      e.target.value;
+
+                    if (
+                      !/^\d{2}\/\d{2}\/\d{4}$/.test(
+                        value
+                      )
+                    ) {
+                      e.target.setCustomValidity(
+                        "Please enter date in DD/MM/YYYY format."
+                      );
+                      return;
+                    }
+
+                    const [
+                      day,
+                      month,
+                      year
+                    ] = value
+                      .split("/")
+                      .map(Number);
+
+                    const enteredDate =
+                      new Date(
+                        year,
+                        month - 1,
+                        day
+                      );
+
+                    const today =
+                      new Date();
+
+                    today.setHours(
+                      0,
+                      0,
+                      0,
+                      0
+                    );
+
+                    // Check whether date is actually valid
+                    if (
+                      enteredDate.getFullYear() !==
+                        year ||
+                      enteredDate.getMonth() !==
+                        month - 1 ||
+                      enteredDate.getDate() !==
+                        day
+                    ) {
+                      e.target.setCustomValidity(
+                        "Please enter a valid date."
+                      );
+                      return;
+                    }
+
+                    // Prevent past date
+                    if (
+                      enteredDate < today
+                    ) {
+                      e.target.setCustomValidity(
+                        "Travel date cannot be in the past."
+                      );
+                      return;
+                    }
+
+                    e.target.setCustomValidity("");
+                  }}
+
                 />
 
               </div>
